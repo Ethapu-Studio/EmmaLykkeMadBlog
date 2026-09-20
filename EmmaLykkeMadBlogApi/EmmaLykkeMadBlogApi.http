@@ -1,0 +1,6 @@
+@EmmaLykkeMadBlogApi_HostAddress = http://localhost:5047
+
+GET {{EmmaLykkeMadBlogApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
