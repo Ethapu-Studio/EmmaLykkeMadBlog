@@ -48,3 +48,29 @@ jobs:
         with:
           name: emma-lykke-madblog-release
           path: ./publish
+
+      - name: Deploy frontend
+        shell: powershell
+        run: |
+          $frontendPath = "C:\ActiveServers\Sk0v.dk\Emma\Frontend"
+
+          New-Item -ItemType Directory -Force -Path $frontendPath | Out-Null
+
+          robocopy ".\publish\frontend" $frontendPath /MIR
+
+          if ($LASTEXITCODE -gt 7) {
+              exit $LASTEXITCODE
+          }
+
+      - name: Deploy API
+        shell: powershell
+        run: |
+          $apiPath = "C:\ActiveServers\Sk0v.dk\Emma\Api"
+
+          New-Item -ItemType Directory -Force -Path $apiPath | Out-Null
+
+          robocopy ".\publish\api" $apiPath /MIR
+
+          if ($LASTEXITCODE -gt 7) {
+              exit $LASTEXITCODE
+          }
