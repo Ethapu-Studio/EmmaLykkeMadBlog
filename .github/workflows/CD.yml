@@ -56,8 +56,9 @@ jobs:
           $appPool = "EmmaLykkeMadBlog"
           $site = "EmmaLykkeMadBlog"
 
-          Write-Host "Stopping IIS site and application pool..."
+          Import-Module WebAdministration
 
+          Write-Host "Stopping IIS site and application pool..."
           Stop-Website -Name $site -ErrorAction SilentlyContinue
 
           if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
@@ -70,35 +71,52 @@ jobs:
           New-Item -ItemType Directory -Force -Path $frontendPath | Out-Null
 
           Write-Host "Deploying frontend..."
+          robocopy ".\publish\frontend" $frontendPath /MIR /R:3 /W:5 /XF appsettings.Production.json
 
-          robocopy ".\publish\frontend" $frontendPath /MIR /R:3 /W:5
-
-          $robocopyExitCode = $LASTEXITCODE
-
-          if ($robocopyExitCode -gt 7) {
-              Write-Error "Frontend deployment failed. Robocopy exit code: $robocopyExitCode"
-              exit $robocopyExitCode
+          # Robocopy codes 0-7 mean success, 8 or higher means failure
+          if ($LASTEXITCODE -gt 7) {
+              throw "Frontend deployment failed. Robocopy exit code: $LASTEXITCODE"
           }
+          Write-Host "Frontend copied successfully. Robocopy exit code: $LASTEXITCODE"
 
-          Write-Host "Frontend copied successfully. Robocopy exit code: $robocopyExitCode"
-
-          Write-Host "Starting IIS application pool..."
-
+          Write-Host "Starting IIS application pool and site..."
           Start-WebAppPool -Name $appPool
-
           Start-Website -Name $site
 
           Write-Host "Frontend deployment completed successfully."
 
+          # Stop Robocopy's exit code 1 from failing the step
+          $global:LASTEXITCODE = 0
+
       - name: Deploy API
         shell: powershell
         run: |
-          $apiPath = "C:\ActiveServers\Sk0v.dk\Emma\Api"
+          $apiPath = "C:\ActiveServers\Sk0v.dk\Emma\API"
+          $serviceName = "emma-api"
 
           New-Item -ItemType Directory -Force -Path $apiPath | Out-Null
 
-          robocopy ".\publish\api" $apiPath /MIR
+          # The service may not exist yet; only stop/start it if it does
+          $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+          if ($service -and $service.Status -ne "Stopped") {
+              Write-Host "Stopping $serviceName..."
+              Stop-Service -Name $serviceName -Force
+          }
+
+          Write-Host "Deploying API..."
+          robocopy ".\publish\api" $apiPath /MIR /R:3 /W:5 /XF appsettings.Production.json
 
           if ($LASTEXITCODE -gt 7) {
-              exit $LASTEXITCODE
+              throw "API deployment failed. Robocopy exit code: $LASTEXITCODE"
           }
+          Write-Host "API copied successfully. Robocopy exit code: $LASTEXITCODE"
+
+          if ($service) {
+              Write-Host "Starting $serviceName..."
+              Start-Service -Name $serviceName
+          }
+
+          Write-Host "API deployment completed successfully."
+
+          # Stop Robocopy's exit code 1 from failing the step
+          $global:LASTEXITCODE = 0
