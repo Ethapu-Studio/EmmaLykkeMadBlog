@@ -49,7 +49,7 @@ jobs:
           name: emma-lykke-madblog-release
           path: ./publish
 
-            - name: Deploy frontend
+      - name: Deploy frontend
         shell: powershell
         run: |
           $frontendPath = "C:\ActiveServers\Sk0v.dk\Emma\Frontend"
