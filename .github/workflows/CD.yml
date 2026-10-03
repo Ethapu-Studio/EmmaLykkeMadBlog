@@ -92,7 +92,7 @@ jobs:
         shell: powershell
         run: |
           $apiPath = "C:\ActiveServers\Sk0v.dk\Emma\API"
-          $serviceName = "emma-api"
+          $serviceName = "EmmaLykkeMadBlogApi"
 
           New-Item -ItemType Directory -Force -Path $apiPath | Out-Null
 
