@@ -49,18 +49,46 @@ jobs:
           name: emma-lykke-madblog-release
           path: ./publish
 
-      - name: Deploy frontend
+            - name: Deploy frontend
         shell: powershell
         run: |
           $frontendPath = "C:\ActiveServers\Sk0v.dk\Emma\Frontend"
+          $appPool = "EmmaLykkeMadBlog"
+          $site = "EmmaLykkeMadBlog"
+
+          Write-Host "Stopping IIS site and application pool..."
+
+          Stop-Website -Name $site -ErrorAction SilentlyContinue
+
+          if ((Get-WebAppPoolState -Name $appPool).Value -ne "Stopped") {
+              Stop-WebAppPool -Name $appPool
+          }
+
+          # Give IIS/ASP.NET Core a moment to release files
+          Start-Sleep -Seconds 3
 
           New-Item -ItemType Directory -Force -Path $frontendPath | Out-Null
 
-          robocopy ".\publish\frontend" $frontendPath /MIR
+          Write-Host "Deploying frontend..."
 
-          if ($LASTEXITCODE -gt 7) {
-              exit $LASTEXITCODE
+          robocopy ".\publish\frontend" $frontendPath /MIR /R:3 /W:5
+
+          $robocopyExitCode = $LASTEXITCODE
+
+          if ($robocopyExitCode -gt 7) {
+              Write-Error "Frontend deployment failed. Robocopy exit code: $robocopyExitCode"
+              exit $robocopyExitCode
           }
+
+          Write-Host "Frontend copied successfully. Robocopy exit code: $robocopyExitCode"
+
+          Write-Host "Starting IIS application pool..."
+
+          Start-WebAppPool -Name $appPool
+
+          Start-Website -Name $site
+
+          Write-Host "Frontend deployment completed successfully."
 
       - name: Deploy API
         shell: powershell
