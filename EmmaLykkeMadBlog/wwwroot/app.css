@@ -28,24 +28,3 @@
 .main-nav .dropdown a { padding: .55rem 1.25rem; text-transform: none; letter-spacing: 0; font-weight: 500; }
 .main-nav .dropdown a:hover { background: var(--color-bg); }
 .has-dropdown:hover .dropdown, .has-dropdown:focus-within .dropdown { display: flex; }
-
-.page {
-    display: flex;
-}
-
-.ad-bar {
-    width: 160px; /* standard skyscraper ad width */
-    flex-shrink: 0;
-    display: none; /* hidden by default, shown at wider breakpoints */
-}
-
-@media (min-width: 1400px) {
-    .ad-bar {
-        display: block;
-    }
-}
-
-main {
-    flex: 1;
-    min-width: 0;
-}
