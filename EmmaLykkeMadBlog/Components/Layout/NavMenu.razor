@@ -1,30 +1,25 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">EmmaLykkeMadBlog</a>
+﻿<header class="site-header">
+    <div class="header-top">
+        <a class="brand" href="/" aria-label="Emma Lykke – forside">
+            <span class="brand-name">Emma Lykke</span>
+            <span class="brand-sub">Aut. klinisk diætist</span>
+        </a>
+
+        <nav class="main-nav" aria-label="Hovednavigation">
+            <ul>
+                <li class="has-dropdown">
+                    <a href="#" aria-haspopup="true">Opskrifter <span class="caret" aria-hidden="true">▾</span></a>
+                    <ul class="dropdown">
+                        @* TODO: Replace static categories with API data. *@
+                        <li><a href="#">Morgenmad</a></li>
+                        <li><a href="#">Snacks</a></li>
+                        <li><a href="#">Aftensmad</a></li>
+                        <li><a href="#">Bagning</a></li>
+                    </ul>
+                </li>
+                <li><a href="#">Om</a></li>
+                <li><a href="#">Kontakt</a></li>
+            </ul>
+        </nav>
     </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
+</header>
