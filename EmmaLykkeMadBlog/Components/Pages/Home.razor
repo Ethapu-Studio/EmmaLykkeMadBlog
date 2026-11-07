@@ -1,7 +1,373 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Emma Lykke – Sunde opskrifter fra en klinisk diætist</PageTitle>
+<HeadContent>
+    <meta name="description" content="Enkle og nærende opskrifter til hverdagen, skrevet af Emma Lykke, autoriseret klinisk diætist." />
+</HeadContent>
 
-<h1>Hello, world!</h1>
+<div class="home">
 
-Welcome to your new app.
+    @* ---------- HERO ---------- *@
+    <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+            <p class="kicker">Opskrifter fra en klinisk diætist</p>
+            <h1 id="hero-title">Sund mad, der smager af mere</h1>
+            <p class="hero-intro">
+                Enkle, nærende opskrifter til hverdagen – udviklet med faglig viden
+                og et stort fokus på smag.
+            </p>
+            <a class="fp-btn" href="#seneste">Find opskrifter</a>
+        </div>
+
+        @* TODO: Replace with a real photo. *@
+        <div class="media" aria-hidden="true"><div class="ph"></div></div>
+    </section>
+
+    @* ---------- UDVALGTE OPSKRIFTER ---------- *@
+    <section class="featured" aria-labelledby="featured-title">
+        <div class="section-head">
+            <h2 id="featured-title">Udvalgte opskrifter</h2>
+        </div>
+
+        <div class="featured-grid">
+            @foreach (var (recipe, index) in featured.Select((r, i) => (r, i)))
+            {
+                <article class="feature @(index == 0 ? "feature-lead" : "")">
+                    <a href="#">
+                        @Media(recipe)
+                        <span class="meta">@recipe.Category · @recipe.Minutes min</span>
+                        <h3>@recipe.Title</h3>
+                        <p>@recipe.Description</p>
+                    </a>
+                </article>
+            }
+        </div>
+    </section>
+
+    @* ---------- KATEGORIER ---------- *@
+    <section class="categories" aria-labelledby="categories-title">
+        <div class="section-head">
+            <h2 id="categories-title">Kategorier</h2>
+        </div>
+
+        <nav aria-label="Opskriftskategorier">
+            <ul class="category-list">
+                @foreach (var category in categories)
+                {
+                    <li>
+                        <a href="#">
+                            <span class="cat-name">@category.Name</span>
+                            <span class="cat-count">@category.Count opskrifter</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </section>
+
+    @* ---------- SENESTE OPSKRIFTER ---------- *@
+    <section class="latest" id="seneste" aria-labelledby="latest-title">
+        <div class="section-head">
+            <h2 id="latest-title">Seneste opskrifter</h2>
+            <a class="text-link" href="#">Se alle opskrifter</a>
+        </div>
+
+        <div class="recipe-grid">
+            @foreach (var recipe in latest)
+            {
+                <article class="recipe">
+                    <a href="#">
+                        @Media(recipe)
+                        <span class="meta">@recipe.Category · @recipe.Minutes min</span>
+                        <h3>@recipe.Title</h3>
+                        <p>@recipe.Description</p>
+                    </a>
+                </article>
+            }
+        </div>
+    </section>
+
+</div>
+
+@code {
+    // TODO: Replace all sample data with API data when the backend is ready.
+    private record CategoryItem(string Name, int Count);
+    private record RecipeItem(string Title, string Description, string Category, int Minutes, string? ImageUrl = null);
+
+    // Shows the real photo when ImageUrl is set, otherwise a neutral placeholder block.
+    private RenderFragment<RecipeItem> Media => recipe => @<div class="media">
+        @if (!string.IsNullOrEmpty(recipe.ImageUrl))
+        {
+            <img src="@recipe.ImageUrl" alt="@recipe.Title" loading="lazy" decoding="async" />
+        }
+        else
+        {
+            <div class="ph" aria-hidden="true"></div>
+        }
+    </div>;
+
+    private readonly List<CategoryItem> categories = new()
+    {
+        new("Morgenmad", 12),
+        new("Snacks", 8),
+        new("Aftensmad", 24),
+        new("Bagning", 9)
+    };
+
+    private readonly List<RecipeItem> featured = new()
+    {
+        new("Ovnbagt laks med citron og urter", "En enkel bageplade-ret med sprøde grøntsager og masser af friske urter.", "Aftensmad", 35),
+        new("Havregrød med bagte æbler", "Varm og mættende morgenmad med kanel og knasende nødder.", "Morgenmad", 15),
+        new("Grove rugboller", "Saftige boller med frø, der holder sig friske i flere dage.", "Bagning", 90)
+    };
+
+    private readonly List<RecipeItem> latest = new()
+    {
+        new("Overnight oats med bær", "Forbered aftenen før, og start dagen med ro.", "Morgenmad", 10),
+        new("Hummus med grøntsagsstave", "Cremet snack, der holder sulten væk.", "Snacks", 10),
+        new("Linsegryde med citron", "Varm gryderet fyldt med fibre og protein.", "Aftensmad", 40),
+        new("Yoghurt med nødder og honning", "Hurtig morgenmad på under fem minutter.", "Morgenmad", 5),
+        new("Gulerodsmuffins", "Bløde muffins med lidt mindre sukker.", "Bagning", 40),
+        new("Kikærtesalat med feta", "Frisk og mættende frokost til madpakken.", "Aftensmad", 15),
+        new("Rugbrødschips med dip", "Sprød snack, der er nem at lave selv.", "Snacks", 20),
+        new("Fiskefrikadeller med remoulade", "Klassiker med en let og luftig fyldning.", "Aftensmad", 30)
+    };
+}
+
+<style>
+    .home {
+        --ink: #2b2b28;
+        --space-section: clamp(3.5rem, 7vw, 6rem);
+
+        max-width: var(--shell-max);
+        margin-inline: auto;
+        padding: 2.5rem var(--gutter) 5rem;
+        color: var(--ink);
+    }
+
+    .home section + section { margin-top: var(--space-section); }
+
+    .home h1,
+    .home h2,
+    .home h3 {
+        font-family: var(--font-heading);
+        font-weight: 500;
+        color: var(--color-primary);
+    }
+
+    .home a { color: inherit; text-decoration: none; }
+    .home a:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+
+    .home .kicker,
+    .home .meta {
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+    }
+
+    /* ---------- Images ---------- */
+    .home .media {
+        overflow: hidden;
+        background: var(--color-border);
+        border-radius: 4px;
+    }
+
+    .home .media img,
+    .home .media .ph {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .5s ease;
+    }
+
+    .home a:hover .media img { transform: scale(1.03); }
+
+    /* ---------- Hero ---------- */
+    .home .hero {
+        display: grid;
+        grid-template-columns: 1.1fr .9fr;
+        gap: clamp(2rem, 5vw, 5rem);
+        align-items: center;
+    }
+
+    .home .hero h1 {
+        font-size: clamp(2.5rem, 5vw, 4.25rem);
+        line-height: 1.06;
+        letter-spacing: -.01em;
+        margin: 1rem 0 1.25rem;
+    }
+
+    .home .hero-intro {
+        max-width: 32rem;
+        margin: 0 0 2rem;
+        font-size: 1.125rem;
+        line-height: 1.65;
+        color: var(--color-muted);
+    }
+
+    .home .fp-btn {
+        display: inline-block;
+        padding: .9rem 1.8rem;
+        border-radius: 4px;
+        background: var(--color-primary);
+        color: #fff;
+        font-size: .85rem;
+        font-weight: 600;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        transition: background .2s ease;
+    }
+
+    .home .fp-btn:hover { background: #1f3528; color: #fff; }
+
+    .home .hero .media {
+        width: 100%;
+        max-width: 32rem;
+        margin-left: auto;
+        aspect-ratio: 4 / 5;
+    }
+
+    /* ---------- Section heads ---------- */
+    .home .section-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: .5rem 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .home .section-head h2 {
+        margin: 0;
+        font-size: clamp(1.6rem, 3vw, 2.25rem);
+    }
+
+    .home .text-link {
+        font-size: .8rem;
+        font-weight: 600;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--color-primary);
+    }
+
+    .home .text-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+    /* ---------- Featured ---------- */
+    .home .featured-grid {
+        display: grid;
+        grid-template-columns: 1.8fr 1fr;
+        gap: 3rem 2.5rem;
+    }
+
+    .home .feature-lead { grid-row: 1 / span 2; }
+    .home .feature .media { aspect-ratio: 3 / 2; }
+    .home .feature-lead .media { aspect-ratio: 4 / 3; }
+
+    .home .feature .meta { display: block; margin-top: 1rem; }
+
+    .home .feature h3 {
+        margin: .5rem 0;
+        font-size: 1.4rem;
+        line-height: 1.2;
+    }
+
+    .home .feature-lead h3 { font-size: clamp(1.8rem, 3vw, 2.5rem); }
+
+    .home .feature p {
+        max-width: 40rem;
+        margin: 0;
+        line-height: 1.6;
+        color: var(--color-muted);
+    }
+
+    /* ---------- Categories ---------- */
+    .home .category-list {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .home .category-list li { border-bottom: 1px solid var(--color-border); }
+
+    .home .category-list a {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.75rem 1.5rem 1.75rem 0;
+    }
+
+    .home .cat-name {
+        font-family: var(--font-heading);
+        font-size: clamp(1.4rem, 2.4vw, 2rem);
+        color: var(--color-primary);
+    }
+
+    .home .cat-count { font-size: .85rem; color: var(--color-muted); }
+
+    .home .category-list a:hover .cat-name {
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 6px;
+    }
+
+    /* ---------- Latest ---------- */
+    .home .recipe-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2.5rem 1.75rem;
+    }
+
+    .home .recipe .media { aspect-ratio: 4 / 5; }
+    .home .recipe .meta { display: block; margin: .9rem 0 .35rem; }
+
+    .home .recipe h3 {
+        margin: 0 0 .4rem;
+        font-size: 1.2rem;
+        line-height: 1.25;
+    }
+
+    .home .recipe p {
+        margin: 0;
+        font-size: .95rem;
+        line-height: 1.5;
+        color: var(--color-muted);
+    }
+
+    .home .feature a:hover h3,
+    .home .recipe a:hover h3 {
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 4px;
+    }
+
+    /* ---------- Responsive ---------- */
+    @@media (max-width: 900px) {
+        .home { padding-top: 1.5rem; }
+
+        .home .hero { grid-template-columns: 1fr; }
+        .home .hero .media { max-width: none; aspect-ratio: 4 / 3; margin-left: 0; }
+
+        .home .featured-grid { grid-template-columns: 1fr; }
+        .home .feature-lead { grid-row: auto; }
+
+        .home .category-list { grid-template-columns: repeat(2, 1fr); }
+        .home .recipe-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @@media (max-width: 560px) {
+        .home .recipe-grid { grid-template-columns: 1fr; }
+        .home .category-list a { padding-block: 1.25rem; }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .home .media img { transition: none; }
+        .home a:hover .media img { transform: none; }
+    }
+</style>
