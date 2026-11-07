@@ -1,21 +1,31 @@
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
-namespace EmmaLykkeMadBlog.Infrastructure.Models;
-
-[Index(nameof(RecipeId), nameof(StepNumber), IsUnique = true)]
-public class RecipeStep
+namespace EmmaLykkeMadBlog.Infrastructure.Models
 {
-    [Key]
-    public int Id { get; set; }
+    [Table("recipe_step")]
+    [Index(nameof(RecipeId), nameof(StepNumber), IsUnique = true)]
+    public class RecipeStep
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
 
-    [ForeignKey(nameof(Recipe))]
-    public int RecipeId { get; set; }
-    public Recipe Recipe { get; set; } = null!;
+        // foreign key to Recipe.Id
+        [Required]
+        [Column("recipe_id")]
+        public int RecipeId { get; set; }
 
-    public int StepNumber { get; set; }
+        [ForeignKey(nameof(RecipeId))]
+        public Recipe Recipe { get; set; } = null!;
 
-    [Required]
-    public string Instruction { get; set; } = string.Empty;
+        [Required]
+        [Column("step_number")]
+        public int StepNumber { get; set; }
+
+        [Required]
+        [Column("instruction")]
+        public string Instruction { get; set; } = null!;
+    }
 }

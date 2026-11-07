@@ -1,20 +1,29 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EmmaLykkeMadBlog.Infrastructure.Models;
-
-[Index(nameof(Name), IsUnique = true)]
-[Index(nameof(Slug), IsUnique = true)]
-public class Tag
+namespace EmmaLykkeMadBlog.Infrastructure.Models
 {
-    [Key]
-    public int Id { get; set; }
+    [Table("tag")]
+    [Index(nameof(Name), IsUnique = true)]
+    [Index(nameof(Slug), IsUnique = true)]
+    public class Tag
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
 
-    [Required, MaxLength(100)]
-    public string Name { get; set; } = string.Empty;
+        [Required]
+        [MaxLength(100)]
+        [Column("name")]
+        public string Name { get; set; } = null!;
 
-    [Required, MaxLength(100)]
-    public string Slug { get; set; } = string.Empty;
+        [Required]
+        [MaxLength(100)]
+        [Column("slug")]
+        public string Slug { get; set; } = null!;
 
-    public List<RecipeTag> RecipeTags { get; set; } = new();
+        public List<RecipeTag> RecipeTags { get; set; } = new();
+    }
 }

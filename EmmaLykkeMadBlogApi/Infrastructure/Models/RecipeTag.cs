@@ -1,16 +1,27 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EmmaLykkeMadBlog.Infrastructure.Models;
-
-[PrimaryKey(nameof(RecipeId), nameof(TagId))]
-public class RecipeTag
+namespace EmmaLykkeMadBlog.Infrastructure.Models
 {
-    [ForeignKey(nameof(Recipe))]
-    public int RecipeId { get; set; }
-    public Recipe Recipe { get; set; } = null!;
+    [Table("recipe_tag")]
+    [PrimaryKey(nameof(RecipeId), nameof(TagId))]
+    public class RecipeTag
+    {
+        // foreign key to Recipe.Id
+        [Required]
+        [Column("recipe_id")]
+        public int RecipeId { get; set; }
 
-    [ForeignKey(nameof(Tag))]
-    public int TagId { get; set; }
-    public Tag Tag { get; set; } = null!;
+        [ForeignKey(nameof(RecipeId))]
+        public Recipe Recipe { get; set; } = null!;
+
+        // foreign key to Tag.Id
+        [Required]
+        [Column("tag_id")]
+        public int TagId { get; set; }
+
+        [ForeignKey(nameof(TagId))]
+        public Tag Tag { get; set; } = null!;
+    }
 }

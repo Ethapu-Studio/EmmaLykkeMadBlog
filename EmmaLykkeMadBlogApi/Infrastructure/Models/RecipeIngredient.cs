@@ -1,29 +1,43 @@
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
-namespace EmmaLykkeMadBlog.Infrastructure.Models;
-
-public class RecipeIngredient
+namespace EmmaLykkeMadBlog.Infrastructure.Models
 {
-    [Key]
-    public int Id { get; set; }
+    [Table("recipe_ingredient")]
+    public class RecipeIngredient
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
 
-    [ForeignKey(nameof(Recipe))]
-    public int RecipeId { get; set; }
-    public Recipe Recipe { get; set; } = null!;
+        // foreign key to Recipe.Id
+        [Required]
+        [Column("recipe_id")]
+        public int RecipeId { get; set; }
 
-    [Required, MaxLength(200)]
-    public string Name { get; set; } = string.Empty;
+        [ForeignKey(nameof(RecipeId))]
+        public Recipe Recipe { get; set; } = null!;
 
-    [Precision(8, 2)]
-    public decimal? Amount { get; set; }
+        [Required]
+        [MaxLength(200)]
+        [Column("name")]
+        public string Name { get; set; } = null!;
 
-    [MaxLength(50)]
-    public string? Unit { get; set; }
+        [Precision(8, 2)]
+        [Column("amount")]
+        public decimal? Amount { get; set; }
 
-    [MaxLength(200)]
-    public string? Note { get; set; }
+        [MaxLength(50)]
+        [Column("unit")]
+        public string? Unit { get; set; }
 
-    public int SortOrder { get; set; }
+        [MaxLength(200)]
+        [Column("note")]
+        public string? Note { get; set; }
+
+        [Required]
+        [Column("sort_order")]
+        public int SortOrder { get; set; }
+    }
 }
