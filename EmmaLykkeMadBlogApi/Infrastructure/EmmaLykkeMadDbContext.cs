@@ -13,12 +13,12 @@ public partial class EmmaLykkeMadDbContext : IdentityDbContext<AppUser, Identity
         
     }
 
-       public virtual DbSet<Recipe> Recipe { get; set; } = null!;
-    public virtual DbSet<Category> Category { get; set; } = null!;
-    public virtual DbSet<Tag> Tag { get; set; } = null!;
-    public virtual DbSet<RecipeTag> RecipeTag { get; set; } = null!;
-    public virtual DbSet<RecipeIngredient> RecipeIngredient { get; set; } = null!;
-    public virtual DbSet<RecipeStep> RecipeStep { get; set; } = null!;
+        public virtual DbSet<Recipe> Recipe { get; set; } = null!;
+        public virtual DbSet<Category> Category { get; set; } = null!;
+        public virtual DbSet<Tag> Tag { get; set; } = null!;
+        public virtual DbSet<RecipeTag> RecipeTag { get; set; } = null!;
+        public virtual DbSet<RecipeIngredient> RecipeIngredient { get; set; } = null!;
+        public virtual DbSet<RecipeStep> RecipeStep { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -21,5 +21,88 @@
                 <li><a href="#">Kontakt</a></li>
             </ul>
         </nav>
+
+        <div class="header-utility">
+            @if (isSignedIn)
+            {
+                <details class="account">
+                    <summary class="account-trigger">
+                        <span class="account-name">@displayName</span>
+                        <span class="caret" aria-hidden="true">▾</span>
+                    </summary>
+                    <ul class="account-menu">
+                        @* TODO: add <li><a href="/profil">Min profil</a></li> when profiles exist *@
+                        <li>
+                            <form method="post" data-preview>
+                                @* TODO backend: antiforgery token and real action *@
+                                <button type="submit">Log ud</button>
+                            </form>
+                        </li>
+                    </ul>
+                </details>
+            }
+            else
+            {
+                <a class="login-link" href="/login" data-auth-open="login" aria-haspopup="dialog">Log ind</a>
+            }
+        </div>
     </div>
 </header>
+
+@code {
+    // Design phase only: set to true to preview the signed-in state.
+    // TODO backend: replace with <AuthorizeView> and the signed-in user's name.
+    private bool isSignedIn = false;
+    private string displayName = "Emma";
+}
+
+<style>
+    .header-top { position: relative; }
+
+    .header-utility { position: absolute; top: 1rem; right: var(--gutter); }
+
+    .header-utility a,
+    .account-trigger {
+        display: inline-block;
+        padding: .6rem 0;
+        color: var(--color-primary);
+        font-size: .8rem;
+        font-weight: 600;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .account { position: relative; }
+    .account-trigger { display: flex; gap: .4rem; list-style: none; }
+    .account-trigger::-webkit-details-marker { display: none; }
+
+    .account-menu {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        min-width: 10rem;
+        margin: 0;
+        padding: .5rem 0;
+        list-style: none;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+    }
+
+    .account-menu button {
+        width: 100%;
+        padding: .6rem 1rem;
+        border: 0;
+        background: none;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    @@media (max-width: 700px) {
+        .header-top { padding-top: 2.75rem; }
+        .header-utility { top: .25rem; }
+    }
+</style>

@@ -18,7 +18,8 @@ builder.Services.AddDbContext<EmmaLykkeMadDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(AppPolicies.AdminOnly, policy => policy.RequireRole(AppRoles.Admin));
 
 builder.Services
     .AddIdentityCore<AppUser>(options =>

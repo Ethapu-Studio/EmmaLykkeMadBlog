@@ -1,0 +1,253 @@
+@* Login / create-account overlay. Design only: forms are not connected to a backend yet. *@
+<dialog class="auth-dialog" data-auth-dialog data-view="login" aria-label="Konto">
+    <div class="auth-panel">
+        <button type="button" class="auth-close" data-auth-close>Luk</button>
+
+        @* ---------- LOG IND ---------- *@
+        <section data-auth-view="login" aria-labelledby="auth-login-title">
+            <p class="auth-kicker">Velkommen tilbage</p>
+            <h2 id="auth-login-title">Log ind</h2>
+
+            <form method="post" data-preview>
+                @* TODO backend: antiforgery token and real action *@
+                <p class="auth-error" role="alert" hidden></p>
+
+                <div class="auth-field">
+                    <label for="login-email">E-mail</label>
+                    <input id="login-email" name="email" type="email" autocomplete="username" required />
+                </div>
+                <div class="auth-field">
+                    <label for="login-password">Adgangskode</label>
+                    <input id="login-password" name="password" type="password" autocomplete="current-password" required />
+                </div>
+
+                <button type="submit" class="auth-btn">Log ind</button>
+            </form>
+
+            <div class="auth-foot">
+                <button type="button" class="auth-link" data-auth-switch="forgot">Glemt adgangskode?</button>
+                <span>Ingen konto? <button type="button" class="auth-link" data-auth-switch="register">Opret konto</button></span>
+            </div>
+        </section>
+
+        @* ---------- OPRET KONTO ---------- *@
+        <section data-auth-view="register" aria-labelledby="auth-register-title" hidden>
+            <p class="auth-kicker">Det tager et minut</p>
+            <h2 id="auth-register-title">Opret konto</h2>
+
+            <form method="post" data-preview>
+                <p class="auth-error" role="alert" hidden></p>
+
+                <div class="auth-field">
+                    <label for="reg-name">Navn</label>
+                    <input id="reg-name" name="name" type="text" autocomplete="name" maxlength="100" required />
+                </div>
+                <div class="auth-field">
+                    <label for="reg-email">E-mail</label>
+                    <input id="reg-email" name="email" type="email" autocomplete="email" required />
+                </div>
+                <div class="auth-field">
+                    <label for="reg-password">Adgangskode</label>
+                    <input id="reg-password" name="password" type="password" autocomplete="new-password" minlength="14" required />
+                    <p class="auth-hint">Mindst 14 tegn. En lang sætning er fin.</p>
+                </div>
+
+                <label class="auth-check">
+                    <input type="checkbox" name="newsletter" value="true" />
+                    <span>Ja tak, send mig nyhedsbrev med nye opskrifter. Du kan altid afmelde dig igen.</span>
+                </label>
+
+                <button type="submit" class="auth-btn">Opret konto</button>
+                <p class="auth-hint">Vi sender et link til din e-mail, så du kan bekræfte kontoen.</p>
+            </form>
+
+            <div class="auth-foot">
+                <span>Har du allerede en konto? <button type="button" class="auth-link" data-auth-switch="login">Log ind</button></span>
+            </div>
+        </section>
+
+        @* ---------- GLEMT ADGANGSKODE ---------- *@
+        <section data-auth-view="forgot" aria-labelledby="auth-forgot-title" hidden>
+            <p class="auth-kicker">Ny adgangskode</p>
+            <h2 id="auth-forgot-title">Glemt adgangskode</h2>
+
+            <form method="post" data-preview>
+                <div class="auth-field">
+                    <label for="forgot-email">E-mail</label>
+                    <input id="forgot-email" name="email" type="email" autocomplete="email" required />
+                </div>
+                <button type="submit" class="auth-btn">Send link</button>
+            </form>
+
+            <div class="auth-foot">
+                <button type="button" class="auth-link" data-auth-switch="login">Tilbage til log ind</button>
+            </div>
+        </section>
+
+        @* ---------- TJEK DIN E-MAIL (vises efter oprettelse / nulstilling) ---------- *@
+        <section data-auth-view="sent" aria-labelledby="auth-sent-title" hidden>
+            <p class="auth-kicker">Næsten færdig</p>
+            <h2 id="auth-sent-title">Tjek din e-mail</h2>
+            <p class="auth-text">
+                Hvis adressen kan bruges, har vi sendt et link. Klik på linket for at fortsætte.
+                Kan du ikke finde mailen, så kig i uønsket post.
+            </p>
+            <div class="auth-foot">
+                <button type="button" class="auth-link" data-auth-switch="login">Tilbage til log ind</button>
+            </div>
+        </section>
+    </div>
+</dialog>
+
+<style>
+    .auth-dialog {
+        width: min(26rem, calc(100vw - 2rem));
+        max-height: calc(100dvh - 2rem);
+        margin: auto;
+        padding: 0;
+        overflow: auto;
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        background: var(--color-surface, #fff);
+        color: #2b2b28;
+        box-shadow: 0 18px 48px rgba(43, 43, 40, .14);
+    }
+
+    .auth-dialog::backdrop {
+        background: rgba(43, 43, 40, .28);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+    }
+
+    .auth-dialog [hidden] { display: none !important; }
+
+    .auth-panel { position: relative; padding: 2.5rem 2rem 2rem; }
+
+    .auth-close {
+        position: absolute;
+        top: 1rem;
+        right: 1.25rem;
+        padding: .25rem;
+        border: 0;
+        background: none;
+        font: inherit;
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+        cursor: pointer;
+    }
+
+    .auth-close:hover { color: var(--color-primary); }
+
+    .auth-kicker {
+        margin: 0;
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+    }
+
+    .auth-dialog h2 {
+        margin: .5rem 0 1.5rem;
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 500;
+        line-height: 1.1;
+        color: var(--color-primary);
+    }
+
+    .auth-field { margin-bottom: 1.1rem; }
+
+    .auth-field label {
+        display: block;
+        margin-bottom: .4rem;
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+    }
+
+    .auth-field input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: .8rem .9rem;
+        font: inherit;
+        font-size: 1rem;
+        color: inherit;
+        background: var(--color-bg, #faf7f2);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+    }
+
+    .auth-dialog input:focus-visible,
+    .auth-dialog button:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    .auth-hint { margin: .5rem 0 0; font-size: .85rem; line-height: 1.45; color: var(--color-muted); }
+    .auth-text { margin: 0 0 1.5rem; line-height: 1.6; color: var(--color-muted); }
+
+    .auth-check {
+        display: flex;
+        gap: .7rem;
+        align-items: flex-start;
+        margin: 1.25rem 0 1.5rem;
+        font-size: .9rem;
+        line-height: 1.45;
+    }
+
+    .auth-check input { margin-top: .2rem; accent-color: var(--color-primary); }
+
+    .auth-btn {
+        width: 100%;
+        padding: .95rem 1.8rem;
+        border: 0;
+        border-radius: 4px;
+        background: var(--color-primary);
+        color: #fff;
+        font: inherit;
+        font-size: .85rem;
+        font-weight: 600;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background .2s ease;
+    }
+
+    .auth-btn:hover { background: #1f3528; }
+
+    .auth-foot {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: .5rem 1rem;
+        margin-top: 1.5rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--color-border);
+        font-size: .9rem;
+        color: var(--color-muted);
+    }
+
+    .auth-link {
+        padding: 0;
+        border: 0;
+        background: none;
+        font: inherit;
+        color: var(--color-primary);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        cursor: pointer;
+    }
+
+    .auth-error { margin: 0 0 1rem; font-size: .9rem; color: #8a2f25; }
+
+    @@media (max-width: 560px) {
+        .auth-panel { padding: 2.25rem 1.25rem 1.5rem; }
+        .auth-dialog h2 { font-size: 1.75rem; }
+    }
+</style>

@@ -38,6 +38,16 @@ namespace EmmaLykkeMadBlogApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("concurrency_stamp");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("display_name");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
@@ -54,6 +64,10 @@ namespace EmmaLykkeMadBlogApi.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("lockout_end");
+
+                    b.Property<DateTimeOffset?>("NewsletterOptInAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("newsletter_opt_in_at");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
