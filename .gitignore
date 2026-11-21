@@ -1,6 +1,5 @@
 # ---------- Local settings and secrets (never push) ----------
 appsettings.Development.json
-appsettings.Local.json
 *.env
 .env
 secrets.json
@@ -55,3 +54,6 @@ wwwroot/lib/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+EmmaLykkeMadBlogApi/appsettings.Development.json
+EmmaLykkeMadBlogApi/appsettings.Development.json
+*.json
