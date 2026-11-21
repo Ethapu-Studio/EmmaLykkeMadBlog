@@ -1,15 +1,11 @@
-using EmmaLykkeMadBlog.Contracts;
-using EmmaLykkeMadBlog.Repositories;
+﻿using EmmaLykkeMadBlog.Repositories.Interfaces;
+using EmmaLykkeMadBlog.Services.Interfaces;
+using EmmaLykkeMadBlog.Utility.Models;
 
 namespace EmmaLykkeMadBlog.Services;
 
-public interface IAccountService
-{
-    Task<MeResponse?> GetMeAsync(Guid userId, CancellationToken ct);
-}
-
 public class AccountService(IAccountRepository accounts) : IAccountService
 {
-    public Task<MeResponse?> GetMeAsync(Guid userId, CancellationToken ct) =>
+    public Task<AccountMeResponse?> GetMeAsync(Guid userId, CancellationToken ct) =>
         accounts.GetProfileAsync(userId, ct);
 }

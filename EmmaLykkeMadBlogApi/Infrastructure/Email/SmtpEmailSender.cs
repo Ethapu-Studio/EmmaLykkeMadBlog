@@ -1,7 +1,9 @@
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using EmmaLykkeMadBlog.DTOs;
+using EmmaLykkeMadBlog.Services.Interfaces;
 using MailKit;
 
 namespace EmmaLykkeMadBlog.Infrastructure.Email;

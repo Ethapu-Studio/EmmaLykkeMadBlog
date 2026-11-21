@@ -1,4 +1,4 @@
-@* Login / create-account overlay. Design only: forms are not connected to a backend yet. *@
+@* Login / create-account overlay. The forms post to the frontend's /auth/... endpoints. *@
 <dialog class="auth-dialog" data-auth-dialog data-view="login" aria-label="Konto">
     <div class="auth-panel">
         <button type="button" class="auth-close" data-auth-close>Luk</button>
@@ -8,17 +8,18 @@
             <p class="auth-kicker">Velkommen tilbage</p>
             <h2 id="auth-login-title">Log ind</h2>
 
-            <form method="post" data-preview>
-                @* TODO backend: antiforgery token and real action *@
-                <p class="auth-error" role="alert" hidden></p>
+            <form method="post" action="/auth/login">
+                <AntiforgeryToken />
+                <input type="hidden" name="ReturnUrl" value="/" data-return-url />
+                <p class="auth-msg" role="alert" hidden></p>
 
                 <div class="auth-field">
                     <label for="login-email">E-mail</label>
-                    <input id="login-email" name="email" type="email" autocomplete="username" required />
+                    <input id="login-email" name="Email" type="email" autocomplete="username" maxlength="254" required />
                 </div>
                 <div class="auth-field">
                     <label for="login-password">Adgangskode</label>
-                    <input id="login-password" name="password" type="password" autocomplete="current-password" required />
+                    <input id="login-password" name="Password" type="password" autocomplete="current-password" maxlength="128" required />
                 </div>
 
                 <button type="submit" class="auth-btn">Log ind</button>
@@ -35,25 +36,27 @@
             <p class="auth-kicker">Det tager et minut</p>
             <h2 id="auth-register-title">Opret konto</h2>
 
-            <form method="post" data-preview>
-                <p class="auth-error" role="alert" hidden></p>
+            <form method="post" action="/auth/register">
+                <AntiforgeryToken />
+                <input type="hidden" name="ReturnUrl" value="/" data-return-url />
+                <p class="auth-msg" role="alert" hidden></p>
 
                 <div class="auth-field">
                     <label for="reg-name">Navn</label>
-                    <input id="reg-name" name="name" type="text" autocomplete="name" maxlength="100" required />
+                    <input id="reg-name" name="Name" type="text" autocomplete="name" maxlength="100" required />
                 </div>
                 <div class="auth-field">
                     <label for="reg-email">E-mail</label>
-                    <input id="reg-email" name="email" type="email" autocomplete="email" required />
+                    <input id="reg-email" name="Email" type="email" autocomplete="email" maxlength="254" required />
                 </div>
                 <div class="auth-field">
                     <label for="reg-password">Adgangskode</label>
-                    <input id="reg-password" name="password" type="password" autocomplete="new-password" minlength="14" required />
-                    <p class="auth-hint">Mindst 14 tegn. En lang sætning er fin.</p>
+                    <input id="reg-password" name="Password" type="password" autocomplete="new-password" minlength="7" maxlength="128" required />
+                    <p class="auth-hint">Mindst 7 tegn. En lang sætning er fin.</p>
                 </div>
 
                 <label class="auth-check">
-                    <input type="checkbox" name="newsletter" value="true" />
+                    <input type="checkbox" name="Newsletter" value="true" />
                     <span>Ja tak, send mig nyhedsbrev med nye opskrifter. Du kan altid afmelde dig igen.</span>
                 </label>
 
@@ -71,10 +74,14 @@
             <p class="auth-kicker">Ny adgangskode</p>
             <h2 id="auth-forgot-title">Glemt adgangskode</h2>
 
-            <form method="post" data-preview>
+            <form method="post" action="/auth/forgot">
+                <AntiforgeryToken />
+                <input type="hidden" name="ReturnUrl" value="/" data-return-url />
+                <p class="auth-msg" role="alert" hidden></p>
+
                 <div class="auth-field">
                     <label for="forgot-email">E-mail</label>
-                    <input id="forgot-email" name="email" type="email" autocomplete="email" required />
+                    <input id="forgot-email" name="Email" type="email" autocomplete="email" maxlength="254" required />
                 </div>
                 <button type="submit" class="auth-btn">Send link</button>
             </form>
@@ -84,7 +91,7 @@
             </div>
         </section>
 
-        @* ---------- TJEK DIN E-MAIL (vises efter oprettelse / nulstilling) ---------- *@
+        @* ---------- TJEK DIN E-MAIL ---------- *@
         <section data-auth-view="sent" aria-labelledby="auth-sent-title" hidden>
             <p class="auth-kicker">Næsten færdig</p>
             <h2 id="auth-sent-title">Tjek din e-mail</h2>
@@ -244,7 +251,9 @@
         cursor: pointer;
     }
 
-    .auth-error { margin: 0 0 1rem; font-size: .9rem; color: #8a2f25; }
+    .auth-msg { margin: 0 0 1rem; font-size: .9rem; line-height: 1.45; }
+    .auth-msg[data-kind="error"] { color: #8a2f25; }
+    .auth-msg[data-kind="info"] { color: var(--color-primary); }
 
     @@media (max-width: 560px) {
         .auth-panel { padding: 2.25rem 1.25rem 1.5rem; }

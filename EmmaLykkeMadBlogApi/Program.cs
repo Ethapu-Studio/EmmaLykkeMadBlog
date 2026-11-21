@@ -1,9 +1,14 @@
-
-using EmmaLykkeMadBlog.Infrastructure;
+﻿using EmmaLykkeMadBlog.Infrastructure;
 using EmmaLykkeMadBlog.Infrastructure.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using EmmaLykkeMadBlog.Infrastructure.Email;
+using EmmaLykkeMadBlog.Services.Interfaces;
+using EmmaLykkeMadBlog.Repositories;
+using EmmaLykkeMadBlog.Repositories.Interfaces;
+using EmmaLykkeMadBlog.Services;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,8 +46,12 @@ builder.Services.AddDbContext<EmmaLykkeMadDbContext>(options =>
 
 // Authentication
 builder.Services
-    .AddAuthentication(IdentityConstants.ApplicationScheme)
-    .AddIdentityCookies();
+    .AddAuthentication(IdentityConstants.BearerScheme)
+    .AddBearerToken(IdentityConstants.BearerScheme, options =>
+    {
+        options.BearerTokenExpiration = TimeSpan.FromMinutes(15);
+        options.RefreshTokenExpiration = TimeSpan.FromDays(7);
+    });
 
 // Authorization
 builder.Services.AddAuthorizationBuilder()
@@ -58,7 +67,7 @@ builder.Services
         options.SignIn.RequireConfirmedEmail = true;
 
         // Length matters more than complexity rules.
-        options.Password.RequiredLength = 14;
+        options.Password.RequiredLength = 7;
         options.Password.RequireDigit = false;
         options.Password.RequireLowercase = false;
         options.Password.RequireUppercase = false;
@@ -73,6 +82,28 @@ builder.Services
     .AddEntityFrameworkStores<EmmaLykkeMadDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
+// Confirmation and reset links stop working after two hours.
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+    options.TokenLifespan = TimeSpan.FromHours(2));
+
+// Data Protection: tokens and email links are protected with these keys.
+// In production the key folder must be outside the site folder and survive restarts and deployments.
+var dataProtection = builder.Services.AddDataProtection().SetApplicationName("EmmaLykkeMadBlogApi");
+var keyPath = builder.Configuration["DataProtection:KeyPath"];
+if (!string.IsNullOrWhiteSpace(keyPath))
+{
+    dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keyPath));
+}
+
+// Account services
+builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(AuthOptions.SectionName));
+builder.Services.AddMemoryCache();
+builder.Services.TryAddSingleton(TimeProvider.System);
+builder.Services.AddScoped<IAccountEmailService, AccountEmailService>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
@@ -99,15 +130,5 @@ app.UseAuthorization();
 
 // Controllers
 app.MapControllers();
-
-// Development email test
-if (app.Environment.IsDevelopment())
-{
-    app.MapPost("/dev/test-mail", async (string to, IEmailSender sender) =>
-    {
-        await sender.SendAsync(new EmailMessage(to, null, "Test", "<p>Test fra API'et</p>", "Test fra API'et"));
-        return Results.Ok("Done. Check the log and the inbox.");
-    });
-}
 
 app.Run();

@@ -23,38 +23,31 @@
         </nav>
 
         <div class="header-utility">
-            @if (isSignedIn)
-            {
-                <details class="account">
-                    <summary class="account-trigger">
-                        <span class="account-name">@displayName</span>
-                        <span class="caret" aria-hidden="true">▾</span>
-                    </summary>
-                    <ul class="account-menu">
-                        @* TODO: add <li><a href="/profil">Min profil</a></li> when profiles exist *@
-                        <li>
-                            <form method="post" data-preview>
-                                @* TODO backend: antiforgery token and real action *@
-                                <button type="submit">Log ud</button>
-                            </form>
-                        </li>
-                    </ul>
-                </details>
-            }
-            else
-            {
-                <a class="login-link" href="/login" data-auth-open="login" aria-haspopup="dialog">Log ind</a>
-            }
+            <AuthorizeView>
+                <Authorized>
+                    <details class="account">
+                        <summary class="account-trigger">
+                            <span class="account-name">@context.User.Identity?.Name</span>
+                            <span class="caret" aria-hidden="true">▾</span>
+                        </summary>
+                        <ul class="account-menu">
+                            @* TODO: add <li><a href="/profil">Min profil</a></li> when profiles exist *@
+                            <li>
+                                <form method="post" action="/auth/logout">
+                                    <AntiforgeryToken />
+                                    <button type="submit">Log ud</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </details>
+                </Authorized>
+                <NotAuthorized>
+                    <a class="login-link" href="/login" data-auth-open="login" aria-haspopup="dialog">Log ind</a>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
     </div>
 </header>
-
-@code {
-    // Design phase only: set to true to preview the signed-in state.
-    // TODO backend: replace with <AuthorizeView> and the signed-in user's name.
-    private bool isSignedIn = false;
-    private string displayName = "Emma";
-}
 
 <style>
     .header-top { position: relative; }
@@ -77,6 +70,15 @@
     .account { position: relative; }
     .account-trigger { display: flex; gap: .4rem; list-style: none; }
     .account-trigger::-webkit-details-marker { display: none; }
+
+    .account-name {
+        max-width: 10rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .account-menu form { margin: 0; }
 
     .account-menu {
         position: absolute;
