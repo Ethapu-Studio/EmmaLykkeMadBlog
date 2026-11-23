@@ -8,6 +8,7 @@ namespace EmmaLykkeMadBlog.Infrastructure.Models
 {
     [Table("recipe")]
     [Index(nameof(Slug), IsUnique = true)]
+    [Index(nameof(IsPublished), nameof(PublishedAt))]
     public class Recipe
     {
         [Key]
@@ -32,9 +33,14 @@ namespace EmmaLykkeMadBlog.Infrastructure.Models
         [Column("introduction")]
         public string? Introduction { get; set; }
 
+                // A relative path under the image root, e.g. "recipes/2026/11/abc.webp". Never a full address.
         [MaxLength(500)]
-        [Column("image_url")]
-        public string? ImageUrl { get; set; }
+        [Column("image_path")]
+        public string? ImagePath { get; set; }
+
+        [MaxLength(200)]
+        [Column("image_alt")]
+        public string? ImageAlt { get; set; }
 
         [Required]
         [Column("prep_time_minutes")]
@@ -66,8 +72,16 @@ namespace EmmaLykkeMadBlog.Infrastructure.Models
         public decimal? FatG { get; set; }
 
         [Precision(8, 2)]
-        [Column("fiber_g")]
-        public decimal? FiberG { get; set; }
+        [Column("sugar_g")]
+        public decimal? SugarG { get; set; }
+
+        [Precision(8, 2)]
+        [Column("salt_g")]
+        public decimal? SaltG { get; set; }
+
+        [Precision(8, 2)]
+        [Column("saturated_fat_g")]
+        public decimal? SaturatedFatG { get; set; }
 
         // foreign key to Category.Id
         [Required]
@@ -80,6 +94,18 @@ namespace EmmaLykkeMadBlog.Infrastructure.Models
         [Required]
         [Column("is_published")]
         public bool IsPublished { get; set; }
+
+        // Set when the recipe is first published. "Seneste opskrifter" sorts on this.
+        [Column("published_at")]
+        public DateTime? PublishedAt { get; set; }
+
+        // Chosen by the admin for the favourites section (used later).
+        [Required]
+        [Column("is_favorite")]
+        public bool IsFavorite { get; set; }
+
+        [Column("favorite_sort_order")]
+        public int? FavoriteSortOrder { get; set; }
 
         [Required]
         [Column("created_at")]

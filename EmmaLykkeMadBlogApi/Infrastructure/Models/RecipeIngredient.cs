@@ -36,6 +36,11 @@ namespace EmmaLykkeMadBlog.Infrastructure.Models
         [Column("note")]
         public string? Note { get; set; }
 
+        // Optional section heading, e.g. "Til dejen" or "Til fyldet"
+        [MaxLength(100)]
+        [Column("group_name")]
+        public string? GroupName { get; set; }
+
         [Required]
         [Column("sort_order")]
         public int SortOrder { get; set; }

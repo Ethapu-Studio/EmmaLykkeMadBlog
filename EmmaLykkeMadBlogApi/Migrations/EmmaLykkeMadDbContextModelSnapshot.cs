@@ -148,6 +148,29 @@ namespace EmmaLykkeMadBlogApi.Migrations
                     b.ToTable("category");
                 });
 
+            modelBuilder.Entity("EmmaLykkeMadBlog.Infrastructure.Models.PopularRecipe", b =>
+                {
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("recipe_id");
+
+                    b.Property<DateTime>("CalculatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("calculated_at");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("integer")
+                        .HasColumnName("rank");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer")
+                        .HasColumnName("score");
+
+                    b.HasKey("RecipeId");
+
+                    b.ToTable("popular_recipe");
+                });
+
             modelBuilder.Entity("EmmaLykkeMadBlog.Infrastructure.Models.Recipe", b =>
                 {
                     b.Property<int>("Id")
@@ -184,19 +207,27 @@ namespace EmmaLykkeMadBlogApi.Migrations
                         .HasColumnType("numeric(8,2)")
                         .HasColumnName("fat_g");
 
-                    b.Property<decimal?>("FiberG")
-                        .HasPrecision(8, 2)
-                        .HasColumnType("numeric(8,2)")
-                        .HasColumnName("fiber_g");
+                    b.Property<int?>("FavoriteSortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("favorite_sort_order");
 
-                    b.Property<string>("ImageUrl")
+                    b.Property<string>("ImageAlt")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("image_alt");
+
+                    b.Property<string>("ImagePath")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
-                        .HasColumnName("image_url");
+                        .HasColumnName("image_path");
 
                     b.Property<string>("Introduction")
                         .HasColumnType("text")
                         .HasColumnName("introduction");
+
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_favorite");
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean")
@@ -210,6 +241,20 @@ namespace EmmaLykkeMadBlogApi.Migrations
                         .HasPrecision(8, 2)
                         .HasColumnType("numeric(8,2)")
                         .HasColumnName("protein_g");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("published_at");
+
+                    b.Property<decimal?>("SaltG")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)")
+                        .HasColumnName("salt_g");
+
+                    b.Property<decimal?>("SaturatedFatG")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)")
+                        .HasColumnName("saturated_fat_g");
 
                     b.Property<int>("Servings")
                         .HasColumnType("integer")
@@ -226,6 +271,11 @@ namespace EmmaLykkeMadBlogApi.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("slug");
+
+                    b.Property<decimal?>("SugarG")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)")
+                        .HasColumnName("sugar_g");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -244,6 +294,8 @@ namespace EmmaLykkeMadBlogApi.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
+                    b.HasIndex("IsPublished", "PublishedAt");
+
                     b.ToTable("recipe");
                 });
 
@@ -260,6 +312,11 @@ namespace EmmaLykkeMadBlogApi.Migrations
                         .HasPrecision(8, 2)
                         .HasColumnType("numeric(8,2)")
                         .HasColumnName("amount");
+
+                    b.Property<string>("GroupName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("group_name");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -337,6 +394,29 @@ namespace EmmaLykkeMadBlogApi.Migrations
                     b.HasIndex("TagId");
 
                     b.ToTable("recipe_tag");
+                });
+
+            modelBuilder.Entity("EmmaLykkeMadBlog.Infrastructure.Models.RecipeViewDaily", b =>
+                {
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("recipe_id");
+
+                    b.Property<DateOnly>("ViewDate")
+                        .HasColumnType("date")
+                        .HasColumnName("view_date");
+
+                    b.Property<int>("UniqueVisitors")
+                        .HasColumnType("integer")
+                        .HasColumnName("unique_visitors");
+
+                    b.Property<int>("Views")
+                        .HasColumnType("integer")
+                        .HasColumnName("views");
+
+                    b.HasKey("RecipeId", "ViewDate");
+
+                    b.ToTable("recipe_view_daily");
                 });
 
             modelBuilder.Entity("EmmaLykkeMadBlog.Infrastructure.Models.Tag", b =>
@@ -523,6 +603,17 @@ namespace EmmaLykkeMadBlogApi.Migrations
                     b.ToTable("app_user_token", (string)null);
                 });
 
+            modelBuilder.Entity("EmmaLykkeMadBlog.Infrastructure.Models.PopularRecipe", b =>
+                {
+                    b.HasOne("EmmaLykkeMadBlog.Infrastructure.Models.Recipe", "Recipe")
+                        .WithMany()
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipe");
+                });
+
             modelBuilder.Entity("EmmaLykkeMadBlog.Infrastructure.Models.Recipe", b =>
                 {
                     b.HasOne("EmmaLykkeMadBlog.Infrastructure.Models.Category", "Category")
@@ -573,6 +664,17 @@ namespace EmmaLykkeMadBlogApi.Migrations
                     b.Navigation("Recipe");
 
                     b.Navigation("Tag");
+                });
+
+            modelBuilder.Entity("EmmaLykkeMadBlog.Infrastructure.Models.RecipeViewDaily", b =>
+                {
+                    b.HasOne("EmmaLykkeMadBlog.Infrastructure.Models.Recipe", "Recipe")
+                        .WithMany()
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipe");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

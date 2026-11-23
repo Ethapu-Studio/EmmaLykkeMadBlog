@@ -5,6 +5,7 @@ using EmmaLykkeMadBlog.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.RateLimiting;
+using EmmaLykkeMadBlog.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,6 +90,7 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapAuthEndpoints();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

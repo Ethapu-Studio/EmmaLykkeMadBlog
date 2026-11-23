@@ -9,12 +9,20 @@
         'confirm-failed':   { view: 'login',    kind: 'error', text: 'Linket er ugyldigt eller udløbet. Opret kontoen igen for at få et nyt link.' },
         'reset-ok':         { view: 'login',    kind: 'info',  text: 'Din adgangskode er ændret. Log ind med den nye.' },
         'reset-failed':     { view: 'forgot',   kind: 'error', text: 'Linket er ugyldigt eller udløbet. Bed om et nyt her.' },
-        'register-invalid': { view: 'register', kind: 'error', text: 'Tjek, at e-mailen er gyldig, og at adgangskoden er mindst 7 tegn.' },
+        'register-invalid': { view: 'register', kind: 'error', text: 'Tjek, at e-mailen er gyldig, og at adgangskoden er lang nok.' },
         'register-sent':    { view: 'sent' },
         'forgot-sent':      { view: 'sent' }
     };
 
     const getDialog = () => document.querySelector('[data-auth-dialog]');
+
+    // A click on the backdrop only closes the overlay if the press STARTED on the backdrop too.
+    // Selecting text inside the overlay and releasing the mouse outside it must not close it.
+    let pressStartedOnBackdrop = false;
+
+    document.addEventListener('pointerdown', event => {
+        pressStartedOnBackdrop = event.target === getDialog();
+    });
 
     function showMessage(dialog, view, message) {
         dialog.querySelectorAll('.auth-msg').forEach(el => {
@@ -83,8 +91,8 @@
             return;
         }
 
-        if (event.target.closest('[data-auth-close]') || event.target === dialog) {
-            dialog.close(); // the second case is a click on the blurred backdrop
+        if (event.target.closest('[data-auth-close]') || (event.target === dialog && pressStartedOnBackdrop)) {
+            dialog.close();
         }
     });
 

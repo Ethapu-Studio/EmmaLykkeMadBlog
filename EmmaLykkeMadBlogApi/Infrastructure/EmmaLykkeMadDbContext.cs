@@ -19,6 +19,8 @@ public partial class EmmaLykkeMadDbContext : IdentityDbContext<AppUser, Identity
         public virtual DbSet<RecipeTag> RecipeTag { get; set; } = null!;
         public virtual DbSet<RecipeIngredient> RecipeIngredient { get; set; } = null!;
         public virtual DbSet<RecipeStep> RecipeStep { get; set; } = null!;
+        public virtual DbSet<RecipeViewDaily> RecipeViewDaily { get; set; } = null!;
+        public virtual DbSet<PopularRecipe> PopularRecipe { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
