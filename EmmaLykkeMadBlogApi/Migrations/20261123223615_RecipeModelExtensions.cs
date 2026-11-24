@@ -16,11 +16,6 @@ namespace EmmaLykkeMadBlogApi.Migrations
                 table: "recipe",
                 newName: "image_path");
 
-            migrationBuilder.RenameColumn(
-                name: "fiber_g",
-                table: "recipe",
-                newName: "sugar_g");
-
             migrationBuilder.AddColumn<string>(
                 name: "group_name",
                 table: "recipe_ingredient",
@@ -64,6 +59,14 @@ namespace EmmaLykkeMadBlogApi.Migrations
 
             migrationBuilder.AddColumn<decimal>(
                 name: "saturated_fat_g",
+                table: "recipe",
+                type: "numeric(8,2)",
+                precision: 8,
+                scale: 2,
+                nullable: true);
+
+            migrationBuilder.AddColumn<decimal>(
+                name: "sugar_g",
                 table: "recipe",
                 type: "numeric(8,2)",
                 precision: 8,
@@ -157,10 +160,9 @@ namespace EmmaLykkeMadBlogApi.Migrations
                 name: "saturated_fat_g",
                 table: "recipe");
 
-            migrationBuilder.RenameColumn(
+            migrationBuilder.DropColumn(
                 name: "sugar_g",
-                table: "recipe",
-                newName: "fiber_g");
+                table: "recipe");
 
             migrationBuilder.RenameColumn(
                 name: "image_path",

@@ -9,6 +9,7 @@ using EmmaLykkeMadBlog.Repositories.Interfaces;
 using EmmaLykkeMadBlog.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using EmmaLykkeMadBlog.Infrastructure.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,6 +107,16 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
+
+
+// Development only: sample recipes when the recipe table is empty.
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<EmmaLykkeMadDbContext>();
+    var added = await DevelopmentRecipeSeeder.SeedAsync(db);
+    if (added > 0) app.Logger.LogInformation("Development seed: added {Count} sample recipes", added);
+}
 
 // OpenAPI
 if (app.Environment.IsDevelopment())

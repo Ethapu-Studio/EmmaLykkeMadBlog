@@ -211,6 +211,11 @@ namespace EmmaLykkeMadBlogApi.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("favorite_sort_order");
 
+                    b.Property<decimal?>("FiberG")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)")
+                        .HasColumnName("fiber_g");
+
                     b.Property<string>("ImageAlt")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")

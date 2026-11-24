@@ -72,6 +72,10 @@ namespace EmmaLykkeMadBlog.Infrastructure.Models
         public decimal? FatG { get; set; }
 
         [Precision(8, 2)]
+        [Column("fiber_g")]
+        public decimal? FiberG { get; set; }
+        
+        [Precision(8, 2)]
         [Column("sugar_g")]
         public decimal? SugarG { get; set; }
 

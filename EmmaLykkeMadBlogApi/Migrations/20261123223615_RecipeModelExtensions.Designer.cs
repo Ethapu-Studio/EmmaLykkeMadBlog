@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EmmaLykkeMadBlogApi.Migrations
 {
     [DbContext(typeof(EmmaLykkeMadDbContext))]
-    [Migration("20261122215255_RecipeModelExtensions")]
+    [Migration("20261123223615_RecipeModelExtensions")]
     partial class RecipeModelExtensions
     {
         /// <inheritdoc />
@@ -213,6 +213,11 @@ namespace EmmaLykkeMadBlogApi.Migrations
                     b.Property<int?>("FavoriteSortOrder")
                         .HasColumnType("integer")
                         .HasColumnName("favorite_sort_order");
+
+                    b.Property<decimal?>("FiberG")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)")
+                        .HasColumnName("fiber_g");
 
                     b.Property<string>("ImageAlt")
                         .HasMaxLength(200)
