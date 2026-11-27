@@ -31,6 +31,16 @@ builder.Services.AddHttpClient<IAuthApiClient, AuthApiClient>(client =>
     client.Timeout = TimeSpan.FromSeconds(20);
 });
 
+
+// Recipe data: short timeout, 1 MB response cap, and no redirects so a response can never send the server elsewhere.
+builder.Services.AddHttpClient<IRecipeApiClient, RecipeApiClient>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(10);
+    client.MaxResponseContentBufferSize = 1024 * 1024;
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
+
 // Login cookie: HttpOnly, Secure, SameSite Lax. It holds the API tokens, encrypted.
 builder.Services.AddTransient<AuthCookieEvents>();
 

@@ -14,4 +14,13 @@ public class RecipesController(IRecipeService recipes) : ControllerBase
     [HttpGet("home")]
     public async Task<ActionResult<RecipeHomeResponse>> Home(CancellationToken ct) =>
         Ok(await recipes.GetHomeAsync(ct));
+
+    
+    // Missing and unpublished recipes give the same 404.
+    [HttpGet("{slug}")]
+    public async Task<ActionResult<RecipeDetailResponse>> Detail(string slug, CancellationToken ct)
+    {
+        var recipe = await recipes.GetDetailAsync(slug, ct);
+        return recipe is null ? NotFound() : Ok(recipe);
+    }
 }

@@ -2,6 +2,7 @@
 using EmmaLykkeMadBlog.Services.Interfaces;
 using EmmaLykkeMadBlog.Utility.Models;
 using Microsoft.Extensions.Caching.Memory;
+using EmmaLykkeMadBlog.Infrastructure.Models;
 
 namespace EmmaLykkeMadBlog.Services;
 
@@ -11,6 +12,7 @@ public class RecipeService(IRecipeRepository recipes, IMemoryCache cache) : IRec
     private static readonly TimeSpan HomeCacheTime = TimeSpan.FromSeconds(60);
     private const int PopularCount = 3;
     private const int LatestCount = 8;
+    private static readonly TimeSpan DetailCacheTime = TimeSpan.FromSeconds(60);
 
     public async Task<RecipeHomeResponse> GetHomeAsync(CancellationToken ct)
     {
@@ -33,4 +35,41 @@ public class RecipeService(IRecipeRepository recipes, IMemoryCache cache) : IRec
         cache.Set(HomeCacheKey, home, HomeCacheTime);
         return home;
     }
+
+    
+    // The slug is validated by the controller before it gets here.
+    public async Task<RecipeDetailResponse?> GetDetailAsync(string slug, CancellationToken ct)
+    {
+        var key = $"recipes:detail:{slug}";
+        if (cache.TryGetValue(key, out RecipeDetailResponse? cached) && cached is not null)
+            return cached;
+
+        var recipe = await recipes.GetPublishedBySlugAsync(slug, ct);
+        if (recipe is null) return null; // not cached, so random addresses cannot fill the cache
+
+        var detail = ToDetail(recipe);
+        cache.Set(key, detail, DetailCacheTime);
+        return detail;
+    }
+
+    private static RecipeDetailResponse ToDetail(Recipe r) => new(
+        r.Slug, r.Title, r.ShortDescription, r.Introduction,
+        r.Category.Name, r.Category.Slug,
+        r.ImagePath, r.ImageAlt,
+        r.PrepTimeMinutes, r.CookTimeMinutes, r.PrepTimeMinutes + r.CookTimeMinutes, r.Servings,
+        r.PublishedAt,
+        r.Ingredients
+            .OrderBy(i => i.SortOrder)
+            .GroupBy(i => i.GroupName)
+            .Select(g => new RecipeIngredientGroupResponse(
+                g.Key,
+                g.Select(i => new RecipeIngredientResponse(i.Name, i.Amount, i.Unit, i.Note)).ToList()))
+            .ToList(),
+        r.Steps
+            .OrderBy(s => s.StepNumber)
+            .Select(s => new RecipeStepResponse(s.StepNumber, s.Instruction))
+            .ToList(),
+        r.RecipeTags.Select(t => t.Tag.Name).OrderBy(n => n).ToList(),
+        new RecipeNutritionResponse(
+            r.Calories, r.ProteinG, r.CarbsG, r.FatG, r.FiberG, r.SugarG, r.SaltG, r.SaturatedFatG));
 }

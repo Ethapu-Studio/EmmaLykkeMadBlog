@@ -1,4 +1,8 @@
 @page "/"
+@using EmmaLykkeMadBlog.DTOs
+@using EmmaLykkeMadBlog.Services.Interfaces
+@using EmmaLykkeMadBlog.Utility.Models
+@inject IRecipeApiClient RecipeApi
 
 <PageTitle>Emma Lykke – Sunde opskrifter fra en klinisk diætist</PageTitle>
 <HeadContent>
@@ -23,21 +27,24 @@
         <div class="media" aria-hidden="true"><div class="ph"></div></div>
     </section>
 
+    @if (home is not null)
+    {
+
     @* ---------- UDVALGTE OPSKRIFTER ---------- *@
     <section class="featured" aria-labelledby="featured-title">
         <div class="section-head">
-            <h2 id="featured-title">Udvalgte opskrifter</h2>
+            <h2 id="featured-title">Populære opskrifter</h2>
         </div>
 
         <div class="featured-grid">
-            @foreach (var (recipe, index) in featured.Select((r, i) => (r, i)))
+            @foreach (var (recipe, index) in home.Popular.Select((r, i) => (r, i)))
             {
                 <article class="feature @(index == 0 ? "feature-lead" : "")">
-                    <a href="#">
+                    <a href="/opskrift/@recipe.Slug">
                         @Media(recipe)
-                        <span class="meta">@recipe.Category · @recipe.Minutes min</span>
+                        <span class="meta">@recipe.CategoryName · @recipe.TotalMinutes min</span>
                         <h3>@recipe.Title</h3>
-                        <p>@recipe.Description</p>
+                        <p>@recipe.ShortDescription</p>
                     </a>
                 </article>
             }
@@ -52,12 +59,12 @@
 
         <nav aria-label="Opskriftskategorier">
             <ul class="category-list">
-                @foreach (var category in categories)
+                @foreach (var category in home.Categories)
                 {
                     <li>
                         <a href="#">
                             <span class="cat-name">@category.Name</span>
-                            <span class="cat-count">@category.Count opskrifter</span>
+                            <span class="cat-count">@RecipeCountText(category.RecipeCount)</span>
                         </a>
                     </li>
                 }
@@ -73,32 +80,45 @@
         </div>
 
         <div class="recipe-grid">
-            @foreach (var recipe in latest)
+            @foreach (var recipe in home.Latest)
             {
                 <article class="recipe">
-                    <a href="#">
+                    <a href="/opskrift/@recipe.Slug">
                         @Media(recipe)
-                        <span class="meta">@recipe.Category · @recipe.Minutes min</span>
+                        <span class="meta">@recipe.CategoryName · @recipe.TotalMinutes min</span>
                         <h3>@recipe.Title</h3>
-                        <p>@recipe.Description</p>
+                        <p>@recipe.ShortDescription</p>
                     </a>
                 </article>
             }
         </div>
     </section>
 
+    }
+    else
+    {
+        <section class="notice" role="status">
+            <p>Opskrifterne kan ikke hentes lige nu. Prøv igen om lidt.</p>
+        </section>
+    }
+
 </div>
 
 @code {
-    // TODO: Replace all sample data with API data when the backend is ready.
-    private record CategoryItem(string Name, int Count);
-    private record RecipeItem(string Title, string Description, string Category, int Minutes, string? ImageUrl = null);
+    private RecipeHomeResponse? home;
 
-    // Shows the real photo when ImageUrl is set, otherwise a neutral placeholder block.
-    private RenderFragment<RecipeItem> Media => recipe => @<div class="media">
-        @if (!string.IsNullOrEmpty(recipe.ImageUrl))
+    protected override async Task OnInitializedAsync()
+    {
+        // The API being down is expected sometimes: the page then shows a notice instead of recipes.
+        var result = await RecipeApi.GetHomeAsync(CancellationToken.None);
+        home = result.Status == ApiStatus.Ok ? result.Value : null;
+    }
+
+    // Shows the real photo when the recipe has one, otherwise a neutral placeholder block.
+    private RenderFragment<RecipeCardResponse> Media => recipe => @<div class="media">
+        @if (!string.IsNullOrEmpty(recipe.ImagePath))
         {
-            <img src="@recipe.ImageUrl" alt="@recipe.Title" loading="lazy" decoding="async" />
+            <img src="@ImageUrl(recipe.ImagePath)" alt="@(recipe.ImageAlt ?? recipe.Title)" loading="lazy" decoding="async" />
         }
         else
         {
@@ -106,32 +126,10 @@
         }
     </div>;
 
-    private readonly List<CategoryItem> categories = new()
-    {
-        new("Morgenmad", 12),
-        new("Snacks", 8),
-        new("Aftensmad", 24),
-        new("Bagning", 9)
-    };
+    // TODO: image serving is not built yet and decided later. No recipe has an image today.
+    private static string ImageUrl(string imagePath) => "/media/" + imagePath;
 
-    private readonly List<RecipeItem> featured = new()
-    {
-        new("Ovnbagt laks med citron og urter", "En enkel bageplade-ret med sprøde grøntsager og masser af friske urter.", "Aftensmad", 35),
-        new("Havregrød med bagte æbler", "Varm og mættende morgenmad med kanel og knasende nødder.", "Morgenmad", 15),
-        new("Grove rugboller", "Saftige boller med frø, der holder sig friske i flere dage.", "Bagning", 90)
-    };
-
-    private readonly List<RecipeItem> latest = new()
-    {
-        new("Overnight oats med bær", "Forbered aftenen før, og start dagen med ro.", "Morgenmad", 10),
-        new("Hummus med grøntsagsstave", "Cremet snack, der holder sulten væk.", "Snacks", 10),
-        new("Linsegryde med citron", "Varm gryderet fyldt med fibre og protein.", "Aftensmad", 40),
-        new("Yoghurt med nødder og honning", "Hurtig morgenmad på under fem minutter.", "Morgenmad", 5),
-        new("Gulerodsmuffins", "Bløde muffins med lidt mindre sukker.", "Bagning", 40),
-        new("Kikærtesalat med feta", "Frisk og mættende frokost til madpakken.", "Aftensmad", 15),
-        new("Rugbrødschips med dip", "Sprød snack, der er nem at lave selv.", "Snacks", 20),
-        new("Fiskefrikadeller med remoulade", "Klassiker med en let og luftig fyldning.", "Aftensmad", 30)
-    };
+    private static string RecipeCountText(int count) => count == 1 ? "1 opskrift" : $"{count} opskrifter";
 }
 
 <style>
@@ -346,6 +344,18 @@
         text-decoration-thickness: 1px;
         text-underline-offset: 4px;
     }
+    
+    /* ---------- Notice (API unavailable) ---------- */
+    .home .notice {
+        padding: 2.5rem 0;
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .home .notice p {
+        margin: 0;
+        font-size: 1.05rem;
+        color: var(--color-muted);
 
     /* ---------- Responsive ---------- */
     @@media (max-width: 900px) {

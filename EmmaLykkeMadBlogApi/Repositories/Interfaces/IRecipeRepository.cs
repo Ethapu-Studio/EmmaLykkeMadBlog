@@ -1,9 +1,11 @@
-﻿using EmmaLykkeMadBlog.Utility.Models;
+﻿using EmmaLykkeMadBlog.Infrastructure.Models;
+using EmmaLykkeMadBlog.Utility.Models;
 
 namespace EmmaLykkeMadBlog.Repositories.Interfaces;
 
 public interface IRecipeRepository
 {
+    Task<Recipe?> GetPublishedBySlugAsync(string slug, CancellationToken ct);
     Task<IReadOnlyList<RecipeCardResponse>> GetLatestAsync(int count, CancellationToken ct);
     Task<IReadOnlyList<RecipeCardResponse>> GetPopularAsync(int count, CancellationToken ct);
     Task<IReadOnlyList<RecipeCategoryResponse>> GetCategoriesWithCountsAsync(CancellationToken ct);

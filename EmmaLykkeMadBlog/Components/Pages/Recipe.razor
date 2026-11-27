@@ -1,0 +1,372 @@
+@page "/opskrift/{slug}"
+@using System.Globalization
+@using EmmaLykkeMadBlog.DTOs
+@using EmmaLykkeMadBlog.Services.Interfaces
+@using EmmaLykkeMadBlog.Utility.Models
+@inject IRecipeApiClient RecipeApi
+@inject NavigationManager Navigation
+
+<PageTitle>@(recipe?.Title ?? "Opskrift") – Emma Lykke</PageTitle>
+@if (recipe is not null)
+{
+    <HeadContent>
+        <meta name="description" content="@recipe.ShortDescription" />
+    </HeadContent>
+}
+
+<div class="recipe-page">
+
+@if (recipe is not null)
+{
+    var nutrition = NutritionRows(recipe.Nutrition).ToList();
+
+    <article>
+
+        @* ---------- HEAD ---------- *@
+        <header class="rp-head">
+            <div class="rp-copy">
+                <p class="rp-kicker">@recipe.CategoryName</p>
+                <h1>@recipe.Title</h1>
+                <p class="rp-intro">@(recipe.Introduction ?? recipe.ShortDescription)</p>
+
+                <dl class="rp-facts">
+                    @if (recipe.PrepMinutes > 0)
+                    {
+                        <div><dt>Forberedelse</dt><dd>@recipe.PrepMinutes min</dd></div>
+                    }
+                    @if (recipe.CookMinutes > 0)
+                    {
+                        <div><dt>Tilberedning</dt><dd>@recipe.CookMinutes min</dd></div>
+                    }
+                    <div><dt>I alt</dt><dd>@recipe.TotalMinutes min</dd></div>
+                    <div><dt>Portioner</dt><dd>@recipe.Servings</dd></div>
+                </dl>
+            </div>
+
+            <div class="rp-media">
+                @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                {
+                    <img src="@ImageUrl(recipe.ImagePath)" alt="@(recipe.ImageAlt ?? recipe.Title)" decoding="async" fetchpriority="high" />
+                }
+                else
+                {
+                    <div class="ph" aria-hidden="true"></div>
+                }
+            </div>
+        </header>
+
+        @* ---------- INGREDIENTS + STEPS ---------- *@
+        <div class="rp-body">
+            <section class="rp-ingredients" aria-labelledby="ingredients-title">
+                <h2 id="ingredients-title">Ingredienser</h2>
+
+                @foreach (var group in recipe.IngredientGroups)
+                {
+                    @if (!string.IsNullOrWhiteSpace(group.GroupName))
+                    {
+                        <h3>@group.GroupName</h3>
+                    }
+                    <ul>
+                        @foreach (var ingredient in group.Ingredients)
+                        {
+                            <li>
+                                <span class="rp-amount">@AmountText(ingredient)</span>
+                                <span class="rp-name">@IngredientText(ingredient)</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+
+            <section class="rp-steps" aria-labelledby="steps-title">
+                <h2 id="steps-title">Fremgangsmåde</h2>
+                <ol>
+                    @foreach (var step in recipe.Steps)
+                    {
+                        <li>@step.Instruction</li>
+                    }
+                </ol>
+            </section>
+        </div>
+
+        @* ---------- NUTRITION ---------- *@
+        @if (nutrition.Count > 0)
+        {
+            <section class="rp-nutrition" aria-labelledby="nutrition-title">
+                <h2 id="nutrition-title">Næringsindhold pr. portion</h2>
+                <dl>
+                    @foreach (var row in nutrition)
+                    {
+                        <div><dt>@row.Label</dt><dd>@row.Value</dd></div>
+                    }
+                </dl>
+            </section>
+        }
+
+    </article>
+}
+else if (unavailable)
+{
+    <section class="rp-notice" role="status">
+        <p>Opskriften kan ikke hentes lige nu. Prøv igen om lidt.</p>
+    </section>
+}
+
+</div>
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+
+    private RecipeDetailResponse? recipe;
+    private bool unavailable;
+
+    private static readonly CultureInfo Danish = CultureInfo.GetCultureInfo("da-DK");
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var result = await RecipeApi.GetRecipeAsync(Slug, CancellationToken.None);
+
+        recipe = null;
+        unavailable = false;
+
+        switch (result.Status)
+        {
+            case ApiStatus.Ok:
+                recipe = result.Value;
+                break;
+            case ApiStatus.NotFound:
+                Navigation.NotFound(); // the app's NotFound page, with a real 404 status
+                break;
+            default:
+                unavailable = true;
+                break;
+        }
+    }
+
+    // TODO: same placeholder as Home.razor. Image serving is decided later; then both use one shared helper.
+    private static string ImageUrl(string imagePath) => "/media/" + imagePath;
+
+    private static string AmountText(RecipeIngredientResponse i) =>
+        i.Amount is null ? (i.Unit ?? "") : $"{Format(i.Amount.Value)} {i.Unit}".Trim();
+
+    private static string IngredientText(RecipeIngredientResponse i) =>
+        string.IsNullOrWhiteSpace(i.Note) ? i.Name : $"{i.Name}, {i.Note}";
+
+    private static string Format(decimal value) => value.ToString("0.##", Danish);
+
+    // Only values that exist are shown, in the usual Danish order.
+    private static IEnumerable<(string Label, string Value)> NutritionRows(RecipeNutritionResponse n)
+    {
+        if (n.Calories is { } kcal) yield return ("Energi", $"{Format(kcal)} kcal");
+        if (n.FatG is { } fat) yield return ("Fedt", $"{Format(fat)} g");
+        if (n.SaturatedFatG is { } saturated) yield return ("Heraf mættet fedt", $"{Format(saturated)} g");
+        if (n.CarbsG is { } carbs) yield return ("Kulhydrat", $"{Format(carbs)} g");
+        if (n.SugarG is { } sugar) yield return ("Heraf sukker", $"{Format(sugar)} g");
+        if (n.FiberG is { } fiber) yield return ("Kostfibre", $"{Format(fiber)} g");
+        if (n.ProteinG is { } protein) yield return ("Protein", $"{Format(protein)} g");
+        if (n.SaltG is { } salt) yield return ("Salt", $"{Format(salt)} g");
+    }
+}
+
+<style>
+    .recipe-page {
+        --ink: #2b2b28;
+        --space-section: clamp(3rem, 6vw, 5rem);
+
+        max-width: var(--shell-max);
+        margin-inline: auto;
+        padding: 2.5rem var(--gutter) 5rem;
+        color: var(--ink);
+    }
+
+    .recipe-page h1,
+    .recipe-page h2,
+    .recipe-page h3 {
+        font-family: var(--font-heading);
+        font-weight: 500;
+        color: var(--color-primary);
+    }
+
+    /* ---------- Head ---------- */
+    .recipe-page .rp-head {
+        display: grid;
+        grid-template-columns: 1.1fr .9fr;
+        gap: clamp(2rem, 5vw, 5rem);
+        align-items: center;
+    }
+
+    .recipe-page .rp-kicker {
+        margin: 0;
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+    }
+
+    .recipe-page h1 {
+        margin: 1rem 0 1.25rem;
+        font-size: clamp(2.25rem, 4.6vw, 3.75rem);
+        line-height: 1.08;
+        letter-spacing: -.01em;
+    }
+
+    .recipe-page .rp-intro {
+        max-width: 36rem;
+        margin: 0 0 2rem;
+        font-size: 1.125rem;
+        line-height: 1.65;
+        color: var(--color-muted);
+    }
+
+    .recipe-page .rp-facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem 2.5rem;
+        margin: 0;
+        padding: 1.25rem 0;
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .recipe-page .rp-facts dt,
+    .recipe-page .rp-nutrition dt {
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+    }
+
+    .recipe-page .rp-facts dd {
+        margin: .25rem 0 0;
+        font-family: var(--font-heading);
+        font-size: 1.4rem;
+        color: var(--color-primary);
+    }
+
+    .recipe-page .rp-media {
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        background: var(--color-border);
+        border-radius: 4px;
+    }
+
+    .recipe-page .rp-media img,
+    .recipe-page .rp-media .ph {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* ---------- Ingredients and steps ---------- */
+    .recipe-page .rp-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+        gap: 3rem clamp(2.5rem, 6vw, 6rem);
+        margin-top: var(--space-section);
+    }
+
+    .recipe-page .rp-body h2,
+    .recipe-page .rp-nutrition h2 {
+        margin: 0 0 1.5rem;
+        font-size: clamp(1.5rem, 2.6vw, 2rem);
+    }
+
+    .recipe-page .rp-ingredients h3 {
+        margin: 1.75rem 0 .5rem;
+        font-family: inherit;
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+    }
+
+    .recipe-page .rp-ingredients ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .recipe-page .rp-ingredients li {
+        display: flex;
+        gap: 1rem;
+        padding: .7rem 0;
+        border-bottom: 1px solid var(--color-border);
+        line-height: 1.5;
+    }
+
+    .recipe-page .rp-amount {
+        flex: 0 0 5.5rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .recipe-page .rp-steps ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+    }
+
+    .recipe-page .rp-steps li {
+        display: grid;
+        grid-template-columns: 3rem 1fr;
+        max-width: 42rem;
+        padding-bottom: 1.75rem;
+        line-height: 1.7;
+        counter-increment: step;
+    }
+
+    .recipe-page .rp-steps li::before {
+        content: counter(step);
+        font-family: var(--font-heading);
+        font-size: 1.6rem;
+        line-height: 1.3;
+        color: var(--color-primary);
+    }
+
+    /* ---------- Nutrition ---------- */
+    .recipe-page .rp-nutrition {
+        margin-top: var(--space-section);
+        padding-top: 2rem;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .recipe-page .rp-nutrition dl {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+        gap: 1.5rem 2rem;
+        margin: 0;
+    }
+
+    .recipe-page .rp-nutrition dd {
+        margin: .3rem 0 0;
+        font-size: 1.05rem;
+    }
+
+    /* ---------- Notice (API unavailable) ---------- */
+    .recipe-page .rp-notice {
+        padding: 2.5rem 0;
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .recipe-page .rp-notice p {
+        margin: 0;
+        font-size: 1.05rem;
+        color: var(--color-muted);
+    }
+
+    /* ---------- Responsive ---------- */
+    @@media (max-width: 900px) {
+        .recipe-page { padding-top: 1.5rem; }
+
+        .recipe-page .rp-head { grid-template-columns: 1fr; }
+        .recipe-page .rp-media { order: -1; }
+
+        .recipe-page .rp-body { grid-template-columns: 1fr; }
+    }
+</style>
