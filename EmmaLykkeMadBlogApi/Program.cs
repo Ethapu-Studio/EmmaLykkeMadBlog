@@ -107,6 +107,13 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
+builder.Services.AddScoped<IRecipeViewService, RecipeViewService>();
+builder.Services.AddScoped<IRecipeViewRepository, RecipeViewRepository>();
+builder.Services.AddSingleton<IRecipeViewBuffer, RecipeViewBuffer>();
+builder.Services.AddHostedService<RecipeViewFlushService>();
+builder.Services.AddScoped<IPopularRecipeService, PopularRecipeService>();
+builder.Services.AddScoped<IPopularRecipeRepository, PopularRecipeRepository>();
+builder.Services.AddHostedService<PopularRecipeJob>();
 
 var app = builder.Build();
 

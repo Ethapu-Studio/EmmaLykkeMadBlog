@@ -3,9 +3,10 @@
 @using EmmaLykkeMadBlog.DTOs
 @using EmmaLykkeMadBlog.Services.Interfaces
 @using EmmaLykkeMadBlog.Utility.Models
+@using Microsoft.AspNetCore.Http
 @inject IRecipeApiClient RecipeApi
+@inject IRecipeViewTracker ViewTracker
 @inject NavigationManager Navigation
-
 <PageTitle>@(recipe?.Title ?? "Opskrift") – Emma Lykke</PageTitle>
 @if (recipe is not null)
 {
@@ -116,6 +117,9 @@ else if (unavailable)
 
 @code {
     [Parameter] public string Slug { get; set; } = "";
+    
+    // Only set during the real page load. The interactive render later has none, so a view is counted once.
+    [CascadingParameter] public HttpContext? HttpContext { get; set; }
 
     private RecipeDetailResponse? recipe;
     private bool unavailable;
@@ -133,6 +137,8 @@ else if (unavailable)
         {
             case ApiStatus.Ok:
                 recipe = result.Value;
+                if (HttpContext is not null)
+                    await ViewTracker.TrackAsync(HttpContext, Slug, CancellationToken.None);
                 break;
             case ApiStatus.NotFound:
                 Navigation.NotFound(); // the app's NotFound page, with a real 404 status

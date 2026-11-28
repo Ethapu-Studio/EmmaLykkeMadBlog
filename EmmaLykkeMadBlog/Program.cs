@@ -41,6 +41,11 @@ builder.Services.AddHttpClient<IRecipeApiClient, RecipeApiClient>(client =>
 })
 .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
+// Anonymous view counting. The visitor service keeps the daily salt in memory, so it must be a singleton.
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IVisitorIdService, VisitorIdService>();
+builder.Services.AddScoped<IRecipeViewTracker, RecipeViewTracker>();
+
 // Login cookie: HttpOnly, Secure, SameSite Lax. It holds the API tokens, encrypted.
 builder.Services.AddTransient<AuthCookieEvents>();
 

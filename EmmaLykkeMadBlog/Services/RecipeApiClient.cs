@@ -20,4 +20,11 @@ public class RecipeApiClient(HttpClient http, ILogger<RecipeApiClient> logger)
         return GetAsync<RecipeDetailResponse>(
             "recipes.detail", $"api/recipes/{Uri.EscapeDataString(slug)}", ct);
     }
+
+    
+    public Task<ApiStatus> TrackViewAsync(string slug, string visitorId, CancellationToken ct) =>
+        PostAsync("recipes.view",
+            $"api/recipes/{Uri.EscapeDataString(slug)}/view",
+            new RecipeViewRequest { VisitorId = visitorId },
+            ct);
 }

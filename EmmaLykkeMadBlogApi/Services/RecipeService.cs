@@ -6,12 +6,14 @@ using EmmaLykkeMadBlog.Infrastructure.Models;
 
 namespace EmmaLykkeMadBlog.Services;
 
-public class RecipeService(IRecipeRepository recipes, IMemoryCache cache) : IRecipeService
+public class RecipeService(IRecipeRepository recipes, IMemoryCache cache, TimeProvider clock) : IRecipeService
 {
     private const string HomeCacheKey = "recipes:home";
     private static readonly TimeSpan HomeCacheTime = TimeSpan.FromSeconds(60);
     private const int PopularCount = 3;
     private const int LatestCount = 8;
+    private const int ListPageSize = 12;
+    private const int PopularWindowDays = 30;
     private static readonly TimeSpan DetailCacheTime = TimeSpan.FromSeconds(60);
 
     public async Task<RecipeHomeResponse> GetHomeAsync(CancellationToken ct)
@@ -35,7 +37,6 @@ public class RecipeService(IRecipeRepository recipes, IMemoryCache cache) : IRec
         cache.Set(HomeCacheKey, home, HomeCacheTime);
         return home;
     }
-
     
     // The slug is validated by the controller before it gets here.
     public async Task<RecipeDetailResponse?> GetDetailAsync(string slug, CancellationToken ct)
@@ -50,6 +51,29 @@ public class RecipeService(IRecipeRepository recipes, IMemoryCache cache) : IRec
         var detail = ToDetail(recipe);
         cache.Set(key, detail, DetailCacheTime);
         return detail;
+    }
+
+    // Lists are not cached: the search text is free input, so a cache would grow without limit.
+    public async Task<RecipeListResponse> GetListAsync(RecipeListRequest request, CancellationToken ct)
+    {
+        var search = string.IsNullOrWhiteSpace(request.Search) ? null : request.Search.Trim();
+        var category = string.IsNullOrWhiteSpace(request.Category) ? null : request.Category;
+
+        // Relevance only makes sense with a search text. Otherwise the newest come first.
+        var sort = request.Sort ?? (search is null ? RecipeSort.Newest : RecipeSort.Relevance);
+        if (sort == RecipeSort.Relevance && search is null) sort = RecipeSort.Newest;
+
+        var total = await recipes.CountPublishedAsync(search, category, ct);
+        var totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)ListPageSize));
+        var page = Math.Min(request.Page, totalPages);
+
+        var today = DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
+        var items = await recipes.GetPublishedPageAsync(
+            sort, search, category, today.AddDays(-(PopularWindowDays - 1)), (page - 1) * ListPageSize, ListPageSize, ct);
+
+        var categories = await recipes.GetCategoriesWithCountsAsync(ct);
+
+        return new RecipeListResponse(items, total, page, ListPageSize, totalPages, categories);
     }
 
     private static RecipeDetailResponse ToDetail(Recipe r) => new(

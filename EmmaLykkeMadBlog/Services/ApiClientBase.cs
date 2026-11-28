@@ -44,4 +44,28 @@ public abstract class ApiClientBase(HttpClient http, ILogger logger)
             return new ApiResponse<T>(ApiStatus.Unavailable);
         }
     }
+
+    
+    // For calls that only need an outcome: Ok (any 2xx), NotFound or Unavailable. Same error handling as GetAsync.
+    protected async Task<ApiStatus> PostAsync<TBody>(
+        string operation, string relativeUrl, TBody body, CancellationToken ct)
+    {
+        try
+        {
+            using var response = await http.PostAsJsonAsync(relativeUrl, body, ct);
+
+            if (response.IsSuccessStatusCode) return ApiStatus.Ok;
+            if (response.StatusCode == HttpStatusCode.NotFound) return ApiStatus.NotFound;
+
+            logger.LogWarning("API call {Operation} returned status {Status}", operation, (int)response.StatusCode);
+            return ApiStatus.Unavailable;
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException ||
+            (ex is OperationCanceledException && !ct.IsCancellationRequested))
+        {
+            logger.LogWarning("API call {Operation} failed: {Error}", operation, ex.GetType().Name);
+            return ApiStatus.Unavailable;
+        }
+    }
 }
